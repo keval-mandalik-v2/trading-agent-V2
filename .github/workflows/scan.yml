@@ -1,0 +1,74 @@
+# The scheduled scan.
+#
+# GitHub's `schedule:` is not punctual -- delays of 5-15 minutes are routine and runs
+# are dropped under load. Nothing in scanner/ keys off wall-clock time: each run asks
+# the candle data which candle has finished and works from that, idempotently. So a
+# late run does identical work and a dropped run is caught up by the next one.
+#
+# Times below are UTC. IST = UTC+05:30, so 05:00 UTC = 10:30 IST (the first candle
+# after the Coil window closes) and 10:45 UTC = 16:15 IST (settlement).
+name: scan
+
+on:
+  schedule:
+    - cron: "0,15,30,45 5-10 * * 1-5"
+  workflow_dispatch:
+    inputs:
+      at:
+        description: 'Pretend the IST time is this, e.g. "2026-08-27 11:20"'
+        required: false
+      no_telegram:
+        description: "Print alerts instead of sending them"
+        type: boolean
+        default: false
+
+# Runs must queue, never cancel each other -- a cancelled run loses a Pick window.
+concurrency:
+  group: scan
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - run: pip install -r requirements.txt
+
+      - name: Scan
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          python -m scanner.scan \
+            ${{ inputs.at && format('--at "{0}"', inputs.at) || '' }} \
+            ${{ inputs.no_telegram && '--no-telegram' || '' }}
+
+      - name: Commit the Journal
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          # Only the Journal. data/candles/ is gitignored -- committing a
+          # rebuildable cache 24 times a day would bloat the repo fast.
+          git add -A data/
+          if git diff --cached --quiet; then
+            echo "nothing changed"
+            exit 0
+          fi
+          git commit -m "journal: $(date -u +%Y-%m-%dT%H:%MZ)"
+          # another queued run may have pushed since checkout
+          for i in 1 2 3; do
+            git pull --rebase --autostash origin "${GITHUB_REF_NAME}" && \
+            git push origin "HEAD:${GITHUB_REF_NAME}" && exit 0
+            sleep 5
+          done
+          echo "could not push after 3 attempts" >&2
+          exit 1

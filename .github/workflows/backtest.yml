@@ -1,0 +1,76 @@
+# Manual historical run. Top up the candle cache and re-measure.
+#
+# Deliberately not on a schedule: every invocation is another variant tested against
+# the same small sample, and ADR-0005 requires those to be counted. Running this on a
+# loop would silently inflate the trial count nobody is tracking.
+name: backtest
+
+on:
+  workflow_dispatch:
+    inputs:
+      fetch:
+        description: "Top up the candle cache from NSE first"
+        type: boolean
+        default: true
+      factors:
+        description: "Also test each scoring factor (counts as 4 more variants)"
+        type: boolean
+        default: false
+      log_title:
+        description: "Append the headline result to docs/research-log.md under this title"
+        required: false
+
+concurrency:
+  group: backtest
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  backtest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - run: pip install -r requirements.txt
+
+      - name: Restore the candle cache
+        uses: actions/cache@v4
+        with:
+          path: data/candles
+          key: candles-${{ github.run_id }}
+          restore-keys: |
+            candles-
+
+      - name: Backtest
+        run: |
+          python -m scanner.backtest \
+            ${{ inputs.fetch && '--fetch' || '' }} \
+            ${{ inputs.factors && '--factors' || '' }} \
+            ${{ inputs.log_title && format('--log "{0}"', inputs.log_title) || '' }} \
+            | tee backtest-report.txt
+
+      - name: Summary
+        run: |
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          cat backtest-report.txt >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Commit the candle cache and research log
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/universe.csv docs/
+          if git diff --cached --quiet; then
+            echo "nothing changed"
+            exit 0
+          fi
+          git commit -m "backtest: refresh cache and log $(date -u +%Y-%m-%d)"
+          git pull --rebase --autostash origin "${GITHUB_REF_NAME}"
+          git push origin "HEAD:${GITHUB_REF_NAME}"

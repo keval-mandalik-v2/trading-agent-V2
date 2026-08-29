@@ -1,0 +1,9 @@
+# The candle cache is a rebuildable cache, not data. Committing it would churn
+# ~1.5 MB every 15 minutes and bloat the repo within weeks; the scan workflow
+# commits only the Journal, and the backtest workflow restores this via
+# actions/cache instead.
+data/candles/
+
+__pycache__/
+*.pyc
+.venv/

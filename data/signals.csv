@@ -1,0 +1,1 @@
+day,symbol,direction,breakout_candle,entry_candle,detected_at,c1_high,c1_low,c1_width_pct,coil_high,coil_low,coil_use_pct,coil_avg_volume,breakout_vol_ratio,entry,target,stop,stop_pct,cost_pct,breakeven_hit_rate,status,outcome,realized_pct,resolved_candle,resolved_at
