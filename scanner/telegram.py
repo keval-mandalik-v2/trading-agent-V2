@@ -123,30 +123,47 @@ def format_signal(sig_row: dict, base_rate_label: str, sizes: list[tuple[str, fl
         "%s  breakout candle %s → enter at %s open" % (
             sig_row["day"], sig_row["breakout_candle"], sig_row["entry_candle"]),
         "",
-        "Candle 1     %.2f / %.2f   (%.2f%% wide)" % (
+        "Candle 1     ₹%.2f / ₹%.2f   (%.2f%% wide)" % (
             float(sig_row["c1_high"]), float(sig_row["c1_low"]), float(sig_row["c1_width_pct"])),
         "Coil used    %.0f%% of Candle 1 range" % float(sig_row["coil_use_pct"]),
         "Breakout vol %.2fx the Coil average" % float(sig_row["breakout_vol_ratio"]),
-        "Stop         %.2f" % float(sig_row["stop"]),
         "",
     ]
-    if sig_row.get("stop_pct"):
+
+    # Every level as a price AND a distance in rupees AND a percentage. Deciding in
+    # fifteen minutes is no time to be doing arithmetic on a phone.
+    entry = float(sig_row["entry"]) if sig_row.get("entry") else None
+    stop = float(sig_row["stop"])
+    if entry:
+        target = float(sig_row["target"])
         lines += [
-            "Stop distance %.2f%%   vs Target %.2f%%" % (
-                float(sig_row["stop_pct"]), cfg.TARGET_PCT),
+            "Entry        ₹%.2f" % entry,
+            "Target       ₹%.2f   (₹%.2f away, %.2f%%)" % (
+                target, abs(target - entry), cfg.TARGET_PCT),
+            "Stop         ₹%.2f   (₹%.2f away, %.2f%%)" % (
+                stop, abs(stop - entry), float(sig_row["stop_pct"])),
+            "",
             "<b>Breakeven Hit Rate: %.0f%%</b>  (incl. %.3f%% costs)" % (
                 float(sig_row["breakeven_hit_rate"]), float(sig_row["cost_pct"])),
             "",
         ]
     else:
-        lines += ["Stop distance: known once %s opens" % sig_row["entry_candle"], ""]
+        lines += [
+            "Stop         ₹%.2f" % stop,
+            "Entry and Target: known once %s opens" % sig_row["entry_candle"],
+            "",
+        ]
 
     lines.append("Base Rate: %s" % base_rate_label)
-    if sizes:
+    if sizes and entry:
+        risk_per_share = abs(stop - entry)
         lines.append("")
         lines.append("Position size:")
         for rule, notional in sizes:
-            lines.append("  %-12s ₹%s" % (rule, format(round(notional), ",")))
+            shares = int(notional // entry)
+            lines.append("  %-11s ₹%-8s %4d sh   risk ₹%s" % (
+                rule, format(round(notional), ","), shares,
+                format(round(shares * risk_per_share), ",")))
     lines += [
         "",
         "<i>Paper only — ADR-0006 gates real money.</i>",
