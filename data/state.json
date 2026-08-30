@@ -1,4 +1,14 @@
 {
+  "coiled_2026-08-26": [
+    "APOLLOHOSP",
+    "EICHERMOT",
+    "JSWSTEEL",
+    "ONGC",
+    "SHRIRAMFIN",
+    "SUNPHARMA",
+    "TMPV",
+    "WIPRO"
+  ],
   "coiled_2026-08-27": [
     "ADANIENT",
     "ADANIPORTS",
@@ -10,5 +20,5 @@
     "LT"
   ],
   "telegram_offset": 288529249,
-  "universe_day": "2026-08-27"
+  "universe_day": "2026-08-26"
 }
