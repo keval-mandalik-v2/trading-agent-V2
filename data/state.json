@@ -19,6 +19,19 @@
     "ITC",
     "LT"
   ],
+  "coiled_2026-08-31": [
+    "ASIANPAINT",
+    "BEL",
+    "CIPLA",
+    "HCLTECH",
+    "INDIGO",
+    "JIOFIN",
+    "NTPC",
+    "SBILIFE",
+    "TECHM",
+    "TRENT",
+    "ULTRACEMCO"
+  ],
   "telegram_offset": 288529249,
-  "universe_day": "2026-08-26"
+  "universe_day": "2026-08-31"
 }

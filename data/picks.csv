@@ -3,3 +3,6 @@ day,symbol,answer,reason_code,answered_at,deadline_candle,valid,raw
 2026-08-27,HDFCLIFE,NO_RESPONSE,WINDOW_MISSED,,11:15,WINDOW_MISSED,"alerted 11:20 IST, after the deadline"
 2026-08-27,ITC,NO_RESPONSE,WINDOW_MISSED,,11:00,WINDOW_MISSED,"alerted 11:20 IST, after the deadline"
 2026-08-26,WIPRO,NO_RESPONSE,WINDOW_MISSED,,11:15,WINDOW_MISSED,"alerted 11:20 IST, after the deadline"
+2026-08-31,CIPLA,NO_RESPONSE,WINDOW_MISSED,,11:00,WINDOW_MISSED,"alerted 16:47 IST, after the deadline"
+2026-08-31,TECHM,NO_RESPONSE,WINDOW_MISSED,,11:30,WINDOW_MISSED,"alerted 16:47 IST, after the deadline"
+2026-08-31,ULTRACEMCO,NO_RESPONSE,WINDOW_MISSED,,11:15,WINDOW_MISSED,"alerted 16:47 IST, after the deadline"
