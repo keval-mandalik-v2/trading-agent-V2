@@ -51,6 +51,21 @@
     "NESTLEIND",
     "TMPV"
   ],
+  "coiled_2026-09-04": [
+    "APOLLOHOSP",
+    "BAJAJFINSV",
+    "DRREDDY",
+    "EICHERMOT",
+    "HDFCBANK",
+    "HINDALCO",
+    "INFY",
+    "LT",
+    "MAXHEALTH",
+    "ONGC",
+    "SBIN",
+    "TATACONSUM",
+    "WIPRO"
+  ],
   "telegram_offset": 288529249,
-  "universe_day": "2026-09-03"
+  "universe_day": "2026-09-04"
 }
