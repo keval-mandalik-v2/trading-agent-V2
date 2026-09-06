@@ -1,0 +1,49 @@
+# Send a sample alert to Telegram from a past session, without touching the Journal.
+#
+# Replaying a real session through `scan` is useless as a test: Journal writes are keyed
+# on (day, symbol), so a session already recorded produces no alert at all -- and if it
+# did fire, it would write fictional rows into a notebook whose entire value is that
+# every row is real. This renders and sends the message, and records nothing.
+#
+# Use it to check Telegram delivery after moving repos or rotating the bot token, and to
+# see the effect of any change to the alert layout.
+name: preview-alert
+
+on:
+  workflow_dispatch:
+    inputs:
+      day:
+        description: "Session to replay, YYYY-MM-DD (blank = newest available)"
+        required: false
+      symbol:
+        description: "Only this symbol, e.g. LT (blank = search the universe)"
+        required: false
+      limit:
+        description: "How many sample alerts to send"
+        default: "2"
+
+permissions:
+  contents: read        # this workflow never writes; nothing to commit
+
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - run: pip install -r requirements.txt
+
+      - name: Send sample alert
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          python tools/preview_alert.py \
+            ${{ inputs.day && format('--day "{0}"', inputs.day) || '' }} \
+            ${{ inputs.symbol && format('--symbol "{0}"', inputs.symbol) || '' }} \
+            --limit "${{ inputs.limit || '2' }}"
