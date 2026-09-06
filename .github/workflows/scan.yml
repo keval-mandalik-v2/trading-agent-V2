@@ -1,28 +1,44 @@
-# The scheduled scan.
+# One long-lived job per trading day, which does its own 15-minute timing.
 #
-# GitHub's `schedule:` is not punctual -- delays of 5-15 minutes are routine and runs
-# are dropped under load. Nothing in scanner/ keys off wall-clock time: each run asks
-# the candle data which candle has finished and works from that, idempotently. So a
-# late run does identical work and a dropped run is caught up by the next one.
+# Why not 24 scheduled runs: measured on this repository, GitHub fired 2 of 24 requested
+# `schedule:` events per day. Run numbers were sequential, so the other 22 were never
+# created -- no error, nothing cancelled, they are simply discarded. Scheduled events are
+# best-effort and deprioritised, and :00/:15/:30/:45 are the most congested minutes on the
+# platform. No amount of cron tuning fixes it.
 #
-# Times below are UTC. IST = UTC+05:30, so 05:00 UTC = 10:30 IST (the first candle
-# after the Coil window closes) and 10:45 UTC = 16:15 IST (settlement).
+# So the scheduler is used ONCE, only to start the job. All timing after that comes from
+# scanner/watch.py sleeping to each candle boundary, which is exact. A late start costs
+# the first candle or two instead of the whole session.
+#
+# Cost note: this job is alive ~5h15m per trading day, and GitHub bills wall-clock time
+# including sleep. That is ~6,600 minutes/month, which is free ONLY because this
+# repository is public. If it is ever made private, this workflow costs roughly $39/month
+# -- switch back to short dispatched runs before doing that.
+#
+# Times are UTC. IST = UTC+05:30, so 04:50 UTC = 10:20 IST.
 name: scan
 
 on:
   schedule:
-    - cron: "0,15,30,45 5-10 * * 1-5"
+    - cron: "50 4 * * 1-5"     # 10:20 IST - the real start
+    - cron: "35 5 * * 1-5"     # 11:05 IST - backup if the first was discarded
+    - cron: "35 6 * * 1-5"     # 12:05 IST - last useful fallback, partial session
   workflow_dispatch:
     inputs:
-      at:
-        description: 'Pretend the IST time is this, e.g. "2026-08-27 11:20"'
-        required: false
+      until:
+        description: "Stop after this IST time (HH:MM)"
+        default: "15:46"
+      once:
+        description: "Single pass instead of watching the session"
+        type: boolean
+        default: false
       no_telegram:
         description: "Print alerts instead of sending them"
         type: boolean
         default: false
 
-# Runs must queue, never cancel each other -- a cancelled run loses a Pick window.
+# A backup cron must never cancel the run that is already watching the session. It queues
+# instead, starts after the close, sees the session is over and exits in seconds.
 concurrency:
   group: scan
   cancel-in-progress: false
@@ -31,9 +47,9 @@ permissions:
   contents: write
 
 jobs:
-  scan:
+  watch:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 350        # job ceiling is 360; the session needs ~315
     steps:
       - uses: actions/checkout@v4
 
@@ -43,32 +59,12 @@ jobs:
 
       - run: pip install -r requirements.txt
 
-      - name: Scan
+      - name: Watch the session
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
-          python -m scanner.scan \
-            ${{ inputs.at && format('--at "{0}"', inputs.at) || '' }} \
+          python -m scanner.watch \
+            --until "${{ inputs.until || '15:46' }}" \
+            ${{ inputs.once && '--once' || '' }} \
             ${{ inputs.no_telegram && '--no-telegram' || '' }}
-
-      - name: Commit the Journal
-        run: |
-          git config user.name  "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          # Only the Journal. data/candles/ is gitignored -- committing a
-          # rebuildable cache 24 times a day would bloat the repo fast.
-          git add -A data/
-          if git diff --cached --quiet; then
-            echo "nothing changed"
-            exit 0
-          fi
-          git commit -m "journal: $(date -u +%Y-%m-%dT%H:%MZ)"
-          # another queued run may have pushed since checkout
-          for i in 1 2 3; do
-            git pull --rebase --autostash origin "${GITHUB_REF_NAME}" && \
-            git push origin "HEAD:${GITHUB_REF_NAME}" && exit 0
-            sleep 5
-          done
-          echo "could not push after 3 attempts" >&2
-          exit 1
