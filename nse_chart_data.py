@@ -39,6 +39,13 @@ import requests
 BASE = "https://charting.nseindia.com"
 EPOCH = datetime(1970, 1, 1)
 
+# The API's epochs are the IST wall clock rendered as if it were UTC, and it filters
+# fromDate/toDate in that same shifted space. A true-UTC "now" is therefore 5h30m
+# behind the API's "now", which silently truncates every candle whose IST time is
+# later than the current UTC time-of-day. During market hours that is the entire
+# session: at 10:47 IST (05:17 UTC) even the 09:15 candle is filtered out.
+IST_SHIFT = 5 * 3600 + 30 * 60
+
 # resolution -> (chartType, timeInterval), mirrors the site's own mapping
 RESOLUTIONS: dict[str, tuple[str, int]] = {
     "1": ("I", 1),
@@ -146,7 +153,8 @@ class NseCharting:
         info = self.resolve(symbol)
         chart_type, time_interval = RESOLUTIONS[interval]
 
-        now = int(datetime.now(timezone.utc).timestamp())
+        # ...which is why "now" is shifted into the API's space before being sent.
+        now = int(datetime.now(timezone.utc).timestamp()) + IST_SHIFT
         from_date = 0
         if days:
             # the API filters in the same shifted epoch space that it returns

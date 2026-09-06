@@ -197,9 +197,12 @@ def resolve(session: dict[str, Bar], signal: Signal, entry: float,
             return Outcome("TARGET", signal.target_pct, t)
         last = (t, bar)
 
-    # The square-off candle is missing from the feed. Fall back to the last bar we
-    # did see rather than returning None -- silently dropping unresolvable Signals
-    # would bias the sample, and only a live Trade may legitimately be unresolved.
-    if through is None and last is not None:
+    # The square-off candle is missing from the feed -- the data source truncates the
+    # tail of a session under some conditions. Once the session is demonstrably over
+    # there is nothing further coming, so fall back to the last bar we did see. The
+    # alternative, returning None, strands the Trade at OPEN forever and quietly
+    # removes it from every statistic the Journal produces.
+    session_over = through is None or through >= cfg.SESSION_CANDLES[-1]
+    if session_over and last is not None:
         return Outcome("FIZZLE", (last[1].close - entry) / entry * 100 * sign, last[0])
     return None

@@ -111,64 +111,107 @@ def deadline(day: str, entry_candle: str) -> datetime:
     return base + timedelta(minutes=cfg.CANDLE_MINUTES)
 
 
-def format_signal(sig_row: dict, base_rate_label: str, sizes: list[tuple[str, float]]) -> str:
-    """
-    The alert. No confidence score (ADR-0002) -- raw measurements, the Breakeven Hit
-    Rate this Trade has to clear, and a Base Rate that says "insufficient data" until
-    it has earned the right to say anything else.
-    """
-    arrow = "\U0001F7E9 BUY" if sig_row["direction"] == "BUY" else "\U0001F7E5 SELL"
-    lines = [
-        "<b>%s  %s</b>" % (sig_row["symbol"], arrow),
-        "%s  breakout candle %s → enter at %s open" % (
-            sig_row["day"], sig_row["breakout_candle"], sig_row["entry_candle"]),
-        "",
-        "Candle 1     ₹%.2f / ₹%.2f   (%.2f%% wide)" % (
-            float(sig_row["c1_high"]), float(sig_row["c1_low"]), float(sig_row["c1_width_pct"])),
-        "Coil used    %.0f%% of Candle 1 range" % float(sig_row["coil_use_pct"]),
-        "Breakout vol %.2fx the Coil average" % float(sig_row["breakout_vol_ratio"]),
-        "",
-    ]
+def esc(s) -> str:
+    """HTML-escape. Nifty 50 contains M&M and BAJAJ-AUTO; an unescaped & breaks the send."""
+    return str(s).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
 
-    # Every level as a price AND a distance in rupees AND a percentage. Deciding in
-    # fifteen minutes is no time to be doing arithmetic on a phone.
+
+HOW_TO_READ = [
+    "Meaning: price CLOSED beyond Candle 1's range — a wick poking out would not have counted.",
+    "Score: a rule-based heuristic, not a probability. 75+ is strong, 50–74 mixed, under 50 weak.",
+    "Base Rate is the honest one: what actually happened to past Signals like this. It outranks the score.",
+    "Entry: do not chase. If price has already run past the entry, the Stop is further away than shown.",
+    "Risk first: decide the rupees you are willing to lose before you look at the target.",
+    "Breakeven: the win rate this trade needs just to make zero. Compare it to reality, not to hope.",
+    "Size from the Stop, never from the Target — the risk_1pct row already does that arithmetic.",
+    "Check the live chart: support and resistance, spread, sector and index direction.",
+]
+
+
+def format_signal(sig_row: dict, base_rate_label: str, sizes: list[tuple[str, float]],
+                  session: dict | None = None, when: datetime | None = None,
+                  score: tuple | None = None) -> str:
+    """
+    The alert.
+
+    Ordered so the reader meets the evidence before the conclusion: the candles that
+    formed the pattern, then the levels, then the heuristic score, then the Base Rate --
+    which is the measured number and outranks the score whenever the two disagree.
+    """
+    sym = esc(sig_row["symbol"])
+    buy = sig_row["direction"] == "BUY"
+    dot = "\U0001F7E2" if buy else "\U0001F534"
+    day = sig_row["day"]
+    pretty_day = datetime.strptime(day, "%Y-%m-%d").strftime("%d-%b-%Y")
+
+    L = ["%s <b>15-MIN SETUP SIGNAL</b>" % dot, "",
+         "\U0001F4CA <b>%s</b>" % sym,
+         "Direction: %s <b>%s</b>" % (dot, "BUY" if buy else "SELL")]
+    L.append("Date: %s%s" % (pretty_day,
+                             "   Time: %s IST" % when.strftime("%I:%M %p").lstrip("0") if when else ""))
+
+    # ---- the candles that built the pattern -------------------------------------
+    if session:
+        rows = []
+        for label, key in ([("C1", cfg.CANDLE_1)]
+                           + [("C%d" % (i + 2), t) for i, t in enumerate(cfg.COIL_TIMES)]
+                           + [("Break", sig_row["breakout_candle"])]):
+            b = session.get(key)
+            if b:
+                rows.append("%-5s %s  O:%-9.2f H:%-9.2f L:%-9.2f C:%.2f"
+                            % (label, key, b.open, b.high, b.low, b.close))
+        if rows:
+            L += ["", "── <b>Candles</b> ──", "<pre>" + esc("\n".join(rows)) + "</pre>"]
+
+    # ---- levels: price, rupee distance and percentage, so nothing needs computing --
     entry = float(sig_row["entry"]) if sig_row.get("entry") else None
     stop = float(sig_row["stop"])
+    stop_name = "Candle 1 %s" % ("Low" if buy else "High")
+    L += ["", "── <b>Trade Levels</b> ──"]
     if entry:
         target = float(sig_row["target"])
-        lines += [
-            "Entry        ₹%.2f" % entry,
-            "Target       ₹%.2f   (₹%.2f away, %.2f%%)" % (
-                target, abs(target - entry), cfg.TARGET_PCT),
-            "Stop         ₹%.2f   (₹%.2f away, %.2f%%)" % (
-                stop, abs(stop - entry), float(sig_row["stop_pct"])),
-            "",
-            "<b>Breakeven Hit Rate: %.0f%%</b>  (incl. %.3f%% costs)" % (
-                float(sig_row["breakeven_hit_rate"]), float(sig_row["cost_pct"])),
-            "",
+        L += [
+            "Entry: <b>₹%.2f</b>  (open of %s)" % (entry, sig_row["entry_candle"]),
+            "Target 1%%: <b>₹%.2f</b>   ₹%.2f away" % (target, abs(target - entry)),
+            "Stop (%s): <b>₹%.2f</b>   ₹%.2f away" % (stop_name, stop, abs(stop - entry)),
+            "Stop distance %.2f%%  vs  Target %.2f%%   costs %.3f%%" % (
+                float(sig_row["stop_pct"]), cfg.TARGET_PCT, float(sig_row["cost_pct"])),
         ]
     else:
-        lines += [
-            "Stop         ₹%.2f" % stop,
-            "Entry and Target: known once %s opens" % sig_row["entry_candle"],
-            "",
-        ]
+        L += ["Stop (%s): <b>₹%.2f</b>" % (stop_name, stop),
+              "Entry and Target: known once %s opens" % sig_row["entry_candle"]]
 
-    lines.append("Base Rate: %s" % base_rate_label)
+    # ---- the heuristic score ------------------------------------------------------
+    if score:
+        total, factors, label, action = score
+        L += ["", "── <b>Confidence Score: %d/100</b> ──" % total]
+        L += [esc(f.line()) for f in factors]
+        L += ["", "Verdict: <b>%s</b>" % esc(label)]
+
+    # ---- the measured number, which outranks the score ----------------------------
+    L += ["", "── <b>Base Rate</b> (measured, not guessed) ──", esc(base_rate_label)]
+
     if sizes and entry:
-        risk_per_share = abs(stop - entry)
-        lines.append("")
-        lines.append("Position size:")
-        for rule, notional in sizes:
-            shares = int(notional // entry)
-            lines.append("  %-11s ₹%-8s %4d sh   risk ₹%s" % (
-                rule, format(round(notional), ","), shares,
-                format(round(shares * risk_per_share), ",")))
-    lines += [
-        "",
-        "<i>Paper only — ADR-0006 gates real money.</i>",
-        "Reply <code>TAKE %s</code> or <code>SKIP %s &lt;reason&gt;</code> before %s IST." % (
-            sig_row["symbol"], sig_row["symbol"],
-            deadline(sig_row["day"], sig_row["entry_candle"]).strftime("%H:%M")),
-    ]
-    return "\n".join(lines)
+        risk_ps = abs(stop - entry)
+        rows = ["%-11s ₹%-9s %4d sh   risk ₹%s"
+                % (r, format(round(n), ","), int(n // entry),
+                   format(round(int(n // entry) * risk_ps), ","))
+                for r, n in sizes]
+        L += ["", "── <b>Position Size</b> ──", "<pre>" + esc("\n".join(rows)) + "</pre>"]
+
+    if score:
+        verb, reason, why = score[3]
+        L += ["", "── <b>Suggested: %s</b> ──" % esc(verb), esc(why)]
+
+    L += ["", "── <b>How to Read This</b> ──"]
+    L += ["%d. %s" % (i + 1, esc(t)) for i, t in enumerate(HOW_TO_READ)]
+
+    L += ["", "── <b>Your Pick</b> ──",
+          "Reply <code>TAKE %s</code> or <code>SKIP %s &lt;reason&gt;</code> "
+          "before <b>%s IST</b>." % (sym, sym,
+                                     deadline(day, sig_row["entry_candle"]).strftime("%H:%M")),
+          "Reasons: <code>%s</code>" % " ".join(REASON_CODES),
+          "",
+          "<i>Paper only — no order is placed. ADR-0006 gates real money. "
+          "The score is a rule-based heuristic, not a probability.</i>"]
+    return "\n".join(L)

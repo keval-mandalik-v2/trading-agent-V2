@@ -1,56 +1,4 @@
 {
-  "coiled_2026-08-26": [
-    "APOLLOHOSP",
-    "EICHERMOT",
-    "JSWSTEEL",
-    "ONGC",
-    "SHRIRAMFIN",
-    "SUNPHARMA",
-    "TMPV",
-    "WIPRO"
-  ],
-  "coiled_2026-08-27": [
-    "ADANIENT",
-    "ADANIPORTS",
-    "BAJFINANCE",
-    "BAJAJFINSV",
-    "HDFCLIFE",
-    "ICICIBANK",
-    "ITC",
-    "LT"
-  ],
-  "coiled_2026-08-31": [
-    "ASIANPAINT",
-    "BEL",
-    "CIPLA",
-    "HCLTECH",
-    "INDIGO",
-    "JIOFIN",
-    "NTPC",
-    "SBILIFE",
-    "TECHM",
-    "TRENT",
-    "ULTRACEMCO"
-  ],
-  "coiled_2026-09-01": [],
-  "coiled_2026-09-02": [
-    "BAJFINANCE",
-    "HCLTECH",
-    "HDFCBANK",
-    "HINDUNILVR",
-    "ICICIBANK",
-    "LT",
-    "M&M",
-    "SHRIRAMFIN",
-    "TITAN"
-  ],
-  "coiled_2026-09-03": [
-    "BAJAJ-AUTO",
-    "BHARTIARTL",
-    "HINDUNILVR",
-    "NESTLEIND",
-    "TMPV"
-  ],
   "coiled_2026-09-04": [
     "APOLLOHOSP",
     "BAJAJFINSV",
@@ -65,7 +13,5 @@
     "SBIN",
     "TATACONSUM",
     "WIPRO"
-  ],
-  "telegram_offset": 288529249,
-  "universe_day": "2026-09-04"
+  ]
 }

@@ -26,6 +26,7 @@ import time
 from datetime import datetime
 
 from scanner import candles as cd
+from scanner import confidence
 from scanner import config as cfg
 from scanner import journal as jr
 from scanner import money
@@ -37,12 +38,19 @@ def now_ist() -> datetime:
     return datetime.now(cfg.IST).replace(tzinfo=None)
 
 
-def session_for(symbol: str, day: str, refresh: bool) -> dict[str, cd.Bar]:
-    """Cached candles for one symbol, topped up from the feed when asked."""
+def session_for(symbol: str, day: str, refresh: bool, days: int = 5) -> dict[str, cd.Bar]:
+    """
+    Cached candles for one symbol, topped up from the feed when asked.
+
+    `days` is the lookback the feed is asked for. Five is plenty for today's session, but
+    catching up a straggler from last week needs a wider window -- and the candle cache
+    cannot be relied on to cover the gap, because it is gitignored and therefore empty on
+    every fresh runner.
+    """
     rows = cd.load(symbol)
     if refresh:
         try:
-            rows = cd.merge(rows, cd.fetch(symbol, days=5))
+            rows = cd.merge(rows, cd.fetch(symbol, days=days))
             cd.save(symbol, rows)
         except Exception as exc:                     # one bad symbol must not kill the run
             print("  warn %s: %s: %s" % (symbol, type(exc).__name__, str(exc)[:80]))
@@ -92,15 +100,32 @@ def emit_signal(sym: str, day: str, session: dict, coil: rules.Coil,
     return row, missed
 
 
-def alert(row: dict, missed: bool, when: datetime, send: bool) -> None:
+def alert(row: dict, missed: bool, when: datetime, send: bool, session: dict) -> None:
     """One message per Signal, carrying whatever detail the data supports so far."""
     stop_pct = float(row["stop_pct"]) if row.get("stop_pct") else float(row["c1_width_pct"])
     n, mean, label = jr.base_rate(row["direction"], stop_pct)
     sizes = []
     if row.get("stop_pct"):
+        # risk_1pct first: it is the recommended rule, and putting the ₹1,00,000
+        # fixed_5x row underneath makes the difference in rupees-at-risk obvious.
         sizes = [(r, money.position_size(r, cfg.EQUITY, float(row["stop_pct"])))
-                 for r in ("fixed_5x", "risk_1pct")]
-    text = tg.format_signal(row, label, sizes)
+                 for r in ("risk_1pct", "fixed_5x")]
+
+    sc = None
+    bar = session.get(row["breakout_candle"]) if session else None
+    if bar and row.get("breakeven_hit_rate"):
+        c1_high, c1_low = float(row["c1_high"]), float(row["c1_low"])
+        box = c1_high - c1_low
+        beyond = (bar.close - c1_high) if row["direction"] == rules.BUY else (c1_low - bar.close)
+        sc = confidence.evaluate(
+            breakeven_hit_rate=float(row["breakeven_hit_rate"]),
+            breakout_close_beyond_pct=(beyond / box * 100) if box > 0 else 0.0,
+            coil_use_pct=float(row["coil_use_pct"]),
+            volume_ratio=float(row["breakout_vol_ratio"] or 0),
+            turnover_rupees=bar.volume * bar.close,
+        )
+
+    text = tg.format_signal(row, label, sizes, session=session, when=when, score=sc)
     if missed:
         due = tg.deadline(row["day"], row["entry_candle"])
         text += ("\n\n⚠ Pick window closed at %s IST; this run happened at %s. "
@@ -156,6 +181,33 @@ def settle(row: dict, session: dict, latest: str) -> str | None:
     })
     jr.upsert_signal(update)
     return outcome.status
+
+
+def settle_stragglers(today: str, refresh: bool) -> int:
+    """
+    Resolve Signals left over from earlier sessions.
+
+    The main loop only walks today's Coiled symbols, so a row that failed to resolve on
+    its own day -- a truncated feed, a dropped run, a crash -- would otherwise sit at
+    OPEN forever and disappear from every statistic the Journal produces. Those sessions
+    are definitively over, so they settle with no ceiling on which candles may be read.
+    """
+    done = 0
+    for row in jr.unresolved():
+        if row["day"] >= today:
+            continue
+        session = session_for(row["symbol"], row["day"], refresh, days=40)
+        if not session:
+            continue                       # outside the feed's history window
+        if row["status"] == jr.SIGNALLED:
+            row = open_position(row, session) or row
+        if row["status"] != jr.OPEN:
+            continue
+        got = settle(row, session, None)
+        if got:
+            print("  caught up %s %s -> %s" % (row["day"], row["symbol"], got))
+            done += 1
+    return done
 
 
 def collect_picks(day: str) -> int:
@@ -237,6 +289,18 @@ def main(argv=None) -> int:
         print("Coil window not finished yet; nothing to do.")
         return 0
 
+    # Heartbeat. Until now a run that found nothing committed nothing, so a dropped
+    # cron and a quiet cron looked identical -- which is precisely what let the feed
+    # truncation go unnoticed for a week. Recording every run makes the schedule visible.
+    hb = jr.read_state()
+    hb["runs"] = ([when.strftime("%Y-%m-%d %H:%M")] + hb.get("runs", []))[:80]
+    hb["last_run_ist"] = when.strftime("%Y-%m-%d %H:%M")
+    jr.write_state(hb)
+
+    caught = settle_stragglers(day, refresh)
+    if caught:
+        print("settled %d Signal(s) left over from earlier sessions" % caught)
+
     state = jr.read_state()
     universe = jr.load_universe()
     if refresh and state.get("universe_day") != day:
@@ -279,7 +343,7 @@ def main(argv=None) -> int:
         if row is not None and row["status"] == jr.SIGNALLED:
             row = open_position(row, session) or row
         if fresh is not None:
-            alert(row, missed, when, send)
+            alert(row, missed, when, send, session)
         if row is not None and row["status"] == jr.OPEN:
             got = settle(row, session, latest)
             if got:

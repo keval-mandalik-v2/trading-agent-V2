@@ -1,0 +1,828 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Plain-language glossary of every concept in the 15-minute inside-bar Coil strategy, with real numbers measured from Nifty 50 data.">
+<title>Inside Bar Field Guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+
+<style>
+:root {
+  --bg:        #F2F4F7;
+  --surface:   #FFFFFF;
+  --surface-2: #E9EDF2;
+  --ink:       #16202B;
+  --ink-mid:   #45525F;
+  --ink-soft:  #6B7885;
+  --rule:      #D8DFE7;
+  --rule-soft: #E7ECF1;
+  --accent:    #8A5A18;
+  --accent-bg: #F6EEDF;
+  --bull:      #1E8E5A;
+  --bear:      #C2453D;
+  --bull-soft: #E2F1EA;
+  --bear-soft: #F8E6E4;
+
+  --ff-display: "Newsreader", ui-serif, Georgia, "Times New Roman", serif;
+  --ff-body:    "IBM Plex Sans", ui-sans-serif, system-ui, "Segoe UI", Arial, sans-serif;
+  --ff-mono:    "IBM Plex Mono", ui-monospace, "SFMono-Regular", Consolas, monospace;
+
+  --measure: 65ch;
+  --gap:  clamp(1.5rem, 4vw, 2.75rem);
+  --pad:  clamp(1.1rem, 5vw, 2.5rem);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg:        #10161C;
+    --surface:   #18212A;
+    --surface-2: #1F2A34;
+    --ink:       #E4EAF0;
+    --ink-mid:   #B4C0CC;
+    --ink-soft:  #8B99A6;
+    --rule:      #2A3742;
+    --rule-soft: #222E38;
+    --accent:    #D9A44B;
+    --accent-bg: #2B2416;
+    --bull:      #3FBE84;
+    --bear:      #E0736A;
+    --bull-soft: #163024;
+    --bear-soft: #331E1C;
+  }
+}
+
+:root[data-theme="dark"] {
+  --bg:        #10161C;
+  --surface:   #18212A;
+  --surface-2: #1F2A34;
+  --ink:       #E4EAF0;
+  --ink-mid:   #B4C0CC;
+  --ink-soft:  #8B99A6;
+  --rule:      #2A3742;
+  --rule-soft: #222E38;
+  --accent:    #D9A44B;
+  --accent-bg: #2B2416;
+  --bull:      #3FBE84;
+  --bear:      #E0736A;
+  --bull-soft: #163024;
+  --bear-soft: #331E1C;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--ff-body);
+  font-size: 1rem;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+
+.wrap {
+  max-width: 62rem;
+  margin: 0 auto;
+  padding: 0 var(--pad) 5rem;
+}
+
+/* ---------- header ---------- */
+.masthead {
+  border-bottom: 1px solid var(--rule);
+  padding: clamp(2.5rem, 7vw, 4rem) 0 clamp(1.75rem, 4vw, 2.5rem);
+  margin-bottom: var(--gap);
+}
+.eyebrow {
+  font-family: var(--ff-mono);
+  font-size: .7rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin: 0 0 1rem;
+}
+h1 {
+  font-family: var(--ff-display);
+  font-weight: 600;
+  font-size: clamp(2.1rem, 6.5vw, 3.4rem);
+  line-height: 1.06;
+  letter-spacing: -.015em;
+  margin: 0 0 .85rem;
+  text-wrap: balance;
+}
+.standfirst {
+  font-family: var(--ff-display);
+  font-size: clamp(1.05rem, 2.4vw, 1.25rem);
+  line-height: 1.55;
+  color: var(--ink-mid);
+  max-width: 46ch;
+  margin: 0;
+}
+
+/* ---------- index ---------- */
+.index {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  gap: .4rem 1.5rem;
+  padding: 1.35rem 0 0;
+  margin-top: 1.75rem;
+  border-top: 1px solid var(--rule-soft);
+  list-style: none;
+}
+.index li { margin: 0; }
+.index a {
+  font-family: var(--ff-mono);
+  font-size: .8rem;
+  color: var(--ink-mid);
+  text-decoration: none;
+  display: flex;
+  gap: .6rem;
+  padding: .2rem 0;
+  border-bottom: 1px solid transparent;
+}
+.index a:hover, .index a:focus-visible { color: var(--accent); border-bottom-color: var(--accent); }
+.index .num { color: var(--ink-soft); }
+
+/* ---------- sections ---------- */
+section { margin-top: clamp(3rem, 8vw, 4.75rem); scroll-margin-top: 1.5rem; }
+
+.sec-head {
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+  border-bottom: 2px solid var(--ink);
+  padding-bottom: .6rem;
+  margin-bottom: .35rem;
+}
+.sec-num {
+  font-family: var(--ff-mono);
+  font-size: .8rem;
+  color: var(--accent);
+  letter-spacing: .08em;
+}
+h2 {
+  font-family: var(--ff-display);
+  font-weight: 600;
+  font-size: clamp(1.5rem, 3.6vw, 2.05rem);
+  letter-spacing: -.01em;
+  margin: 0;
+  line-height: 1.15;
+}
+.sec-intro {
+  color: var(--ink-mid);
+  max-width: var(--measure);
+  margin: 1.1rem 0 2rem;
+}
+
+/* ---------- term rows ---------- */
+.term {
+  display: grid;
+  grid-template-columns: 15rem 1fr;
+  gap: 0 2.5rem;
+  padding: 1.6rem 0;
+  border-bottom: 1px solid var(--rule-soft);
+  align-items: start;
+}
+@media (max-width: 46rem) {
+  .term { grid-template-columns: 1fr; gap: .5rem; }
+}
+.term:last-child { border-bottom: none; }
+
+dt { margin: 0; }
+.word {
+  font-family: var(--ff-display);
+  font-size: 1.28rem;
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: -.005em;
+  display: block;
+}
+.aka {
+  font-family: var(--ff-mono);
+  font-size: .72rem;
+  color: var(--ink-soft);
+  letter-spacing: .04em;
+  display: block;
+  margin-top: .3rem;
+}
+dd { margin: 0; max-width: var(--measure); }
+dd p { margin: 0 0 .75rem; }
+dd p:last-child { margin-bottom: 0; }
+
+.ours {
+  display: block;
+  margin-top: .85rem;
+  padding: .7rem .95rem;
+  background: var(--accent-bg);
+  border-left: 2px solid var(--accent);
+  font-size: .9rem;
+  line-height: 1.55;
+  color: var(--ink);
+}
+.ours b {
+  font-family: var(--ff-mono);
+  font-weight: 600;
+  font-size: .78rem;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  color: var(--accent);
+  display: block;
+  margin-bottom: .2rem;
+}
+
+code, .n {
+  font-family: var(--ff-mono);
+  font-size: .89em;
+  font-variant-numeric: tabular-nums;
+}
+code {
+  background: var(--surface-2);
+  padding: .1em .38em;
+  border-radius: 2px;
+}
+.up { color: var(--bull); font-weight: 500; }
+.down { color: var(--bear); font-weight: 500; }
+
+/* ---------- figures ---------- */
+figure {
+  margin: 2rem 0;
+  padding: 1.5rem 1.5rem 1.1rem;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+}
+figure svg { display: block; width: 100%; height: auto; }
+figcaption {
+  font-size: .87rem;
+  color: var(--ink-mid);
+  margin-top: 1rem;
+  padding-top: .85rem;
+  border-top: 1px solid var(--rule-soft);
+  max-width: var(--measure);
+}
+figcaption strong { color: var(--ink); font-weight: 600; }
+.svg-label { font-family: var(--ff-mono); font-size: 11px; fill: var(--ink-soft); }
+.svg-label-em { font-family: var(--ff-mono); font-size: 11px; fill: var(--accent); font-weight: 600; }
+.svg-title { font-family: var(--ff-mono); font-size: 12px; fill: var(--ink); font-weight: 600; }
+
+/* ---------- callout ---------- */
+.callout {
+  margin: 2.25rem 0;
+  padding: 1.4rem 1.6rem;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-top: 3px solid var(--accent);
+}
+.callout h3 {
+  font-family: var(--ff-display);
+  font-size: 1.15rem;
+  font-weight: 600;
+  margin: 0 0 .6rem;
+}
+.callout p { margin: 0 0 .7rem; max-width: var(--measure); color: var(--ink-mid); }
+.callout p:last-child { margin-bottom: 0; }
+.callout strong { color: var(--ink); }
+
+/* ---------- table ---------- */
+.table-scroll { overflow-x: auto; margin: 1.5rem 0; }
+table {
+  border-collapse: collapse;
+  width: 100%;
+  min-width: 30rem;
+  font-size: .9rem;
+}
+th, td {
+  text-align: left;
+  padding: .6rem .9rem .6rem 0;
+  border-bottom: 1px solid var(--rule-soft);
+  vertical-align: top;
+}
+th {
+  font-family: var(--ff-mono);
+  font-size: .72rem;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  border-bottom-color: var(--rule);
+}
+td.num { font-family: var(--ff-mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+/* ---------- footer ---------- */
+.closing {
+  margin-top: clamp(3.5rem, 9vw, 5rem);
+  padding-top: 2rem;
+  border-top: 2px solid var(--ink);
+}
+.closing p { color: var(--ink-mid); max-width: var(--measure); }
+.closing .last {
+  font-family: var(--ff-display);
+  font-size: 1.15rem;
+  font-style: italic;
+  color: var(--ink);
+  margin-top: 1.5rem;
+}
+
+a { color: var(--accent); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+
+/* --- standalone additions: reset the host normally supplies, plus a theme switch --- */
+html { -webkit-text-size-adjust: 100%; }
+img, svg, video { max-width: 100%; height: auto; }
+ul, ol { padding-left: 0; }
+button { font: inherit; color: inherit; }
+
+.theme-toggle {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  z-index: 10;
+  display: inline-flex;
+  align-items: center;
+  gap: .45rem;
+  padding: .45rem .8rem;
+  background: var(--surface);
+  color: var(--ink-mid);
+  border: 1px solid var(--rule);
+  border-radius: 2px;
+  cursor: pointer;
+  font-family: var(--ff-mono);
+  font-size: .72rem;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.theme-toggle:hover { color: var(--accent); border-color: var(--accent); }
+@media print { .theme-toggle { display: none; } }
+@media (max-width: 46rem) { .theme-toggle { position: absolute; } }
+</style>
+</head>
+<body>
+<button class="theme-toggle" id="themeToggle" type="button" aria-label="Switch between light and dark">
+  <span id="themeLabel">Dark</span>
+</button>
+<div class="wrap">
+
+<header class="masthead">
+  <p class="eyebrow">Nifty 50 · 15-minute candles · plain language</p>
+  <h1>Inside Bar Field Guide</h1>
+  <p class="standfirst">Every term in the strategy, explained from scratch — and what each one turned out to be worth when measured against real market data.</p>
+
+  <ul class="index">
+    <li><a href="#chart"><span class="num">01</span> Reading a chart</a></li>
+    <li><a href="#pattern"><span class="num">02</span> The pattern itself</a></li>
+    <li><a href="#money"><span class="num">03</span> Money and risk</a></li>
+    <li><a href="#truth"><span class="num">04</span> Telling truth from luck</a></li>
+    <li><a href="#system"><span class="num">05</span> Words we invented</a></li>
+    <li><a href="#verdict"><span class="num">06</span> What it all measured</a></li>
+  </ul>
+</header>
+
+<!-- ══════════════════════════ 01 ══════════════════════════ -->
+<section id="chart">
+  <div class="sec-head"><span class="sec-num">01</span><h2>Reading a chart</h2></div>
+  <p class="sec-intro">Before any strategy makes sense, the picture has to. A price chart is not a line — it is a row of small boxes, each one summarising a fixed slice of time.</p>
+
+  <figure>
+    <svg viewBox="0 0 640 260" role="img" aria-label="Diagram showing the anatomy of a green rising candle and a red falling candle, with open, high, low and close labelled">
+      <text x="0" y="16" class="svg-title">ANATOMY OF ONE CANDLE</text>
+
+      <!-- bullish -->
+      <line x1="150" y1="52" x2="150" y2="215" stroke="var(--bull)" stroke-width="2"/>
+      <rect x="128" y="92" width="44" height="92" fill="var(--bull-soft)" stroke="var(--bull)" stroke-width="2"/>
+      <line x1="182" y1="52" x2="330" y2="52" stroke="var(--rule)" stroke-width="1" stroke-dasharray="3 3"/>
+      <line x1="182" y1="92" x2="330" y2="92" stroke="var(--rule)" stroke-width="1" stroke-dasharray="3 3"/>
+      <line x1="182" y1="184" x2="330" y2="184" stroke="var(--rule)" stroke-width="1" stroke-dasharray="3 3"/>
+      <line x1="182" y1="215" x2="330" y2="215" stroke="var(--rule)" stroke-width="1" stroke-dasharray="3 3"/>
+      <text x="336" y="56" class="svg-label">HIGH — the highest price traded</text>
+      <text x="336" y="96" class="svg-label">CLOSE — price at the end</text>
+      <text x="336" y="188" class="svg-label">OPEN — price at the start</text>
+      <text x="336" y="219" class="svg-label">LOW — the lowest price traded</text>
+      <text x="80" y="140" class="svg-label-em">body</text>
+      <text x="86" y="70" class="svg-label">wick</text>
+      <line x1="112" y1="66" x2="144" y2="60" stroke="var(--ink-soft)" stroke-width="1"/>
+      <text x="112" y="240" class="svg-label" fill="var(--bull)">RISING — closed above where it opened</text>
+
+      <!-- bearish -->
+      <line x1="580" y1="52" x2="580" y2="215" stroke="var(--bear)" stroke-width="2"/>
+      <rect x="558" y="92" width="44" height="92" fill="var(--bear-soft)" stroke="var(--bear)" stroke-width="2"/>
+      <text x="512" y="240" class="svg-label" fill="var(--bear)">FALLING — closed below its open</text>
+    </svg>
+    <figcaption><strong>The body</strong> spans open to close; <strong>the wicks</strong> reach out to the extremes touched along the way. Green means the price finished higher than it started, red means lower. That is the entire alphabet.</figcaption>
+  </figure>
+
+  <dl>
+    <div class="term">
+      <dt><span class="word">Candle</span><span class="aka">candlestick · bar · OHLC</span></dt>
+      <dd><p>One box summarising a fixed period of time with exactly four numbers: the <b>O</b>pen, the <b>H</b>igh, the <b>L</b>ow and the <b>C</b>lose. Every rule in this strategy is built from those four numbers and nothing else.</p></dd>
+    </div>
+
+    <div class="term">
+      <dt><span class="word">Timeframe</span><span class="aka">interval · resolution</span></dt>
+      <dd><p>How much time one candle covers. We use <b>15 minutes</b>, so the trading day is chopped into 25 candles. A candle labelled <code>10:30</code> covers 10:30 up to 10:45 — and it is not finished until 10:45.</p>
+      <span class="ours"><b>Why this bites</b>Your friend called it "the 10:30 setup", but the 10:30 candle only finishes at 10:45. Acting at 10:30 means acting on a candle that has not happened yet. That single confusion is one of the most common ways beginners fool themselves.</span></dd>
+    </div>
+
+    <div class="term">
+      <dt><span class="word">Session</span><span class="aka">trading day</span></dt>
+      <dd><p>One day of trading. Indian equity markets run <code>09:15</code> to <code>15:30</code> IST, Monday to Friday, minus holidays. The first candle is <code>09:15</code>; the last is <code>15:15</code>.</p></dd>
+    </div>
+
+    <div class="term">
+      <dt><span class="word">Volume</span><span class="aka">turnover · quantity</span></dt>
+      <dd><p>How many shares changed hands during a candle. Big volume is usually read as conviction — lots of people acting. It is the one number in the chart that is not a price.</p>
+      <span class="ours"><b>Watch out</b>NSE occasionally sends one extra bar at the end of the day carrying the <em>entire day's</em> volume. We saw HDFCBANK report 46,184,640 where a normal bar was around 2,000,000. Our code detects and discards those, because leaving one in would silently poison every volume comparison.</span></dd>
+    </div>
+
+    <div class="term">
+      <dt><span class="word">Gap</span><span class="aka">gap up · gap down</span></dt>
+      <dd><p>When a stock opens at a very different price from where it closed the day before, because news arrived while the market was shut. The price never traded in between — it jumped.</p>
+      <p>Gaps are the reason a stop-loss cannot protect you overnight. A stop only works while the market is open.</p></dd>
+    </div>
+  </dl>
+</section>
+
+<!-- ══════════════════════════ 02 ══════════════════════════ -->
+<section id="pattern">
+  <div class="sec-head"><span class="sec-num">02</span><h2>The pattern itself</h2></div>
+  <p class="sec-intro">Your friend's setup is really two classic ideas stacked together: an <em>opening range breakout</em> supplies the box and the direction, and an <em>inside bar consolidation</em> filters out boxes that never went quiet.</p>
+
+  <figure>
+    <svg viewBox="0 0 640 300" role="img" aria-label="Diagram of the Coil pattern: a tall first candle defines a box, four small candles stay inside it, then a fifth candle closes below the box producing a sell signal">
+      <text x="0" y="16" class="svg-title">THE COIL, AND THE BREAK</text>
+
+      <!-- box -->
+      <rect x="34" y="70" width="440" height="120" fill="var(--surface-2)" opacity=".55"/>
+      <line x1="34" y1="70" x2="600" y2="70" stroke="var(--accent)" stroke-width="1.5" stroke-dasharray="5 4"/>
+      <line x1="34" y1="190" x2="600" y2="190" stroke="var(--accent)" stroke-width="1.5" stroke-dasharray="5 4"/>
+      <text x="486" y="64" class="svg-label-em">Candle 1 HIGH</text>
+      <text x="486" y="204" class="svg-label-em">Candle 1 LOW</text>
+
+      <!-- candle 1 -->
+      <line x1="62" y1="70" x2="62" y2="190" stroke="var(--bull)" stroke-width="2"/>
+      <rect x="50" y="88" width="24" height="86" fill="var(--bull-soft)" stroke="var(--bull)" stroke-width="2"/>
+      <text x="42" y="228" class="svg-label">09:15</text>
+      <text x="30" y="246" class="svg-label-em">CANDLE 1</text>
+
+      <!-- coil candles -->
+      <g stroke-width="2">
+        <line x1="150" y1="104" x2="150" y2="168" stroke="var(--bear)"/>
+        <rect x="140" y="118" width="20" height="34" fill="var(--bear-soft)" stroke="var(--bear)"/>
+        <line x1="222" y1="112" x2="222" y2="176" stroke="var(--bull)"/>
+        <rect x="212" y="130" width="20" height="32" fill="var(--bull-soft)" stroke="var(--bull)"/>
+        <line x1="294" y1="98" x2="294" y2="164" stroke="var(--bear)"/>
+        <rect x="284" y="116" width="20" height="36" fill="var(--bear-soft)" stroke="var(--bear)"/>
+        <line x1="366" y1="120" x2="366" y2="182" stroke="var(--bear)"/>
+        <rect x="356" y="134" width="20" height="38" fill="var(--bear-soft)" stroke="var(--bear)"/>
+      </g>
+      <text x="128" y="228" class="svg-label">09:30</text>
+      <text x="200" y="228" class="svg-label">09:45</text>
+      <text x="272" y="228" class="svg-label">10:00</text>
+      <text x="344" y="228" class="svg-label">10:15</text>
+      <text x="186" y="248" class="svg-label-em">all four stay inside — this is a COIL</text>
+
+      <!-- breakout -->
+      <line x1="530" y1="150" x2="530" y2="252" stroke="var(--bear)" stroke-width="2"/>
+      <rect x="516" y="168" width="28" height="70" fill="var(--bear-soft)" stroke="var(--bear)" stroke-width="2.5"/>
+      <text x="500" y="272" class="svg-label">10:30 — closes BELOW the box</text>
+      <text x="556" y="176" class="svg-label" fill="var(--bear)">SELL</text>
+    </svg>
+    <figcaption>The first candle draws a box. If the next four stay completely inside it — <strong>wicks included</strong> — the session qualifies. Then whichever side a later candle <em>closes</em> beyond decides the direction. Here it closed below, so the signal is a sell.</figcaption>
+  </figure>
+
+  <dl>
+    <div class="term">
+      <dt><span class="word">Opening Range Breakout</span><span class="aka">ORB · first candle breakout</span></dt>
+      <dd><p>The family this strategy belongs to. The idea: the first part of the day sets a range while everyone digests overnight news, and whichever side price eventually escapes shows the day's real direction. Very widely traded in India.</p></dd>
+    </div>
+
+    <div class="term">
+      <dt><span class="word">Inside bar</span><span class="aka">inside candle</span></dt>
+      <dd><p>A candle whose <em>entire</em> range — wicks and all — fits within an earlier candle's range. It means the market went quiet: nobody pushed price beyond where it had already been.</p>
+      <p>The word is <b>inside</b>, not "insider". Insider trading is an unrelated crime. They sound alike and mean nothing alike.</p></dd>
+    </div>
+
+    <div class="term">
+      <dt><span class="word">Candle 1</span><span class="aka">the opening candle</span></dt>
+      <dd><p>The <code>09:15–09:30</code> candle. Its high and low become the reference box that every other rule of the day measures against — including where your stop-loss goes.</p></dd>
+    </div>
+
+    <div class="term">
+      <dt><span class="word">Coil</span><span class="aka">the setup · consolidation · the box</span></dt>
+      <dd><p>Our name for the qualifying pattern: candles 2, 3, 4 and 5 all sitting fully inside Candle 1. The mental image is a spring compressing — pressure building for a release.</p>
+      <p>Note this is stricter than a textbook inside bar. Each candle must be inside <em>Candle 1 specifically</em>, not merely inside the one before it.</p>
+      <span class="ours"><b>How often</b>About <b>13%</b> of stock-days. Across 50 Nifty stocks that is roughly 6 to 8 Coils on a typical morning.</span></dd>
+    </div>
+
+    <div class="term">
+      <dt><span class="word">Poke</span><span class="aka">breach · false break</span></dt>
+      <dd><p>When one of the four candles sticks even a wick outside Candle 1's range. A single Poke disqualifies the whole day for that stock — there is no such thing as a partial Coil.</p>
+      <span class="ours"><b>Why so strict</b>We tested loosening it. Allowing bodies to count instead of wicks tripled the number of setups — and dropped the success rate below break-even. Strictness was doing real work.</span></dd>
+    </div>
+
+    <div class="term">
+      <dt><span class="word">Breakout</span><span class="aka">the break</span></dt>
+      <dd><p>A candle that <em>closes</em> beyond Candle 1's high or low. A wick that pokes out and snaps back does not count — only where the candle finishes.</p></dd>
+    </div>
+
+    <div class="term">
+      <dt><span class="word">Signal</span><span class="aka">alert · trigger</span></dt>
+      <dd><p>A Coil plus a confirmed breakout, together with the direction it implies. Close above the box, the signal is <span class="up">BUY</span>; close below, it is <span class="down">SELL</span>. This is the thing that reaches your phone.</p>
+      <span class="ours"><b>How often</b>About <b>8%</b> of stock-days, which works out to roughly <b>4 alerts a day</b> across the Nifty 50. Most days you will hear very little.</span></dd>
+    </div>
+
+    <div class="term">
+      <dt><span class="word">Entry</span><span class="aka">fill · entry price</span></dt>
+      <dd><p>The price you actually get in at: the <em>open of the candle after</em> the breakout candle. Not the breakout candle's own close — you cannot know a candle has closed until it has, so that price was never available to you.</p></dd>
+    </div>
+
+    <div class="term">
+      <dt><span class="word">Target</span><span class="aka">take-profit · TP</span></dt>
+      <dd><p>Where you get out with a profit: <b>1%</b> beyond entry. Reaching it is the only outcome counted as a win.</p></dd>
+    </div>
+
+    <div class="term">
+      <dt><span class="word">Stop</span><span class="aka">stop-loss · SL</span></dt>
+      <dd><p>Where you get out with a loss — here, Candle 1's opposite extreme. Its low if you bought, its high if you sold.</p>
+      <p>The critical thing to understand: <strong>this distance is chosen by the market, not by you.</strong> Some mornings Candle 1 is narrow and the stop sits 0.4% away. Some mornings it is 9% away.</p>
+      <span class="ours"><b>The one that nearly hurt</b>THERMAX had a Candle 1 that was 9.13% wide, putting the stop 9.75% below entry. At 5× leverage, one such trade removes half a ₹20,000 account. This is why we restricted the strategy to Nifty 50 — and why position sizing, further down, matters more than anything else on this page.</span></dd>
+    </div>
+
+    <div class="term">
+      <dt><span class="word">Fizzle</span><span class="aka">timeout · scratch</span></dt>
+      <dd><p>Our word for the outcome nobody warns you about: price breaks out, drifts, and reaches <em>neither</em> target nor stop before the day ends. You exit at whatever the market offers.</p>
+      <span class="ours"><b>The real story</b>Fizzles are <b>65%</b> of all signals — by far the most common result. Your friend's description of the strategy covered only what happens the other third of the time.</span></dd>
+    </div>
+
+    <div class="term">
+      <dt><span class="word">Whipsaw</span><span class="aka">reversal · fake-out</span></dt>
+      <dd><p>Price breaks one way, drags you in, then reverses and breaks the other way. Painful, and common enough to have its own name.</p>
+      <span class="ours"><b>Measured</b>Happened on <b>10%</b> of signals. Taking the reversal as a second trade lost money, so we take one signal per stock per day and let the reversals go.</span></dd>
+    </div>
+  </dl>
+</section>
+
+<!-- ══════════════════════════ 03 ══════════════════════════ -->
+<section id="money">
+  <div class="sec-head"><span class="sec-num">03</span><h2>Money and risk</h2></div>
+  <p class="sec-intro">This is the section that decides whether a correct prediction actually makes you money. Most beginners study patterns and skip this. It is backwards — the arithmetic here is larger than the edge it is applied to.</p>
+
+  <dl>
+    <div class="term">
+      <dt><span class="word">Intraday</span><span class="aka">day trading</span></dt>
+      <dd><p>Buying and selling within the same session, holding nothing overnight. The opposite is <em>positional</em> or <em>delivery</em> trading, where you keep the shares.</p></dd>
+    </div>
+
+    <div class="term">
+      <dt><span class="word">MIS vs CNC</span><span class="aka">intraday vs delivery product</span></dt>
+      <dd><p>Two ways to place the same order. <b>MIS</b> (Margin Intraday Square-off) lends you extra buying power but the broker force-closes your position around <code>15:20</code>. <b>CNC</b> means you pay in full and can hold as long as you like.</p>
+      <p><strong>These cannot be combined.</strong> Carrying a trade overnight means giving up the leverage — ₹20,000 buys ₹20,000 of stock, not ₹1,00,000.</p></dd>
+    </div>
+
+    <div class="term">
+      <dt><span class="word">Leverage</span><span class="aka">margin · 5x</span></dt>
+      <dd><p>Trading with more money than you have. "5×" means ₹20,000 controls ₹1,00,000 of stock. It multiplies gains and losses identically — it is not a strategy, it is a magnifying glass.</p>
+      <span class="ours"><b>What 5× really did</b>Same 88 trades, only the leverage changed. At fixed 5× the account fell to ₹18,520 with a <b>34% drawdown</b>. Risking 1% per trade instead, it ended at ₹20,641 with a <b>3.6% drawdown</b>.</span></dd>
+    </div>
+
+    <div class="term">
+      <dt><span class="word">Square-off</span><span class="aka">auto square-off</span></dt>
+      <dd><p>The broker automatically closing your intraday position near <code>15:20</code>, whether you like the price or not. Every Fizzle exits here.</p></dd>
+    </div>
+
+    <div class="term">
+      <dt><span class="word">Bid–ask spread</span><span class="aka">the spread</span></dt>
+      <dd><p>The gap between the best price someone will buy at and the best price someone will sell at. You always buy at the higher one and sell at the lower one, so crossing the spread costs you money instantly — before the trade has done anything at all.</p>
+      <span class="ours"><b>The killer fact</b>This strategy's raw edge is about <b>0.08%</b> per trade. On Nifty 50 stocks the spread alone is roughly 0.02–0.05% each way. <b>The edge is roughly the width of the doorway you must walk through to collect it.</b></span></dd>
+    </div>
+
+    <div class="term">
+      <dt><span class="word">Slippage</span><span class="aka">execution cost</span></dt>
+      <dd><p>Getting a worse price than you intended, because the market moved between deciding and executing. It grows when the stock is thinly traded or moving fast.</p></dd>
+    </div>
+
+    <div class="term">
+      <dt><span class="word">Round-trip cost</span><span class="aka">brokerage · STT · GST · charges</span></dt>
+      <dd><p>Everything you pay to get in and out once: brokerage, Securities Transaction Tax, exchange fees, stamp duty, SEBI charges and 18% GST layered on some of them.</p>
+      <span class="ours"><b>Measured, not guessed</b>On a ₹1,00,000 intraday position: <b>₹106, or 0.106%</b>. Against a 1% target that is over a tenth of your entire winnings — every single trade, win or lose.</span></dd>
+    </div>
+
+    <div class="term">
+      <dt><span class="word">Risk : Reward</span><span class="aka">R:R</span></dt>
+      <dd><p>How much you stand to lose against how much you stand to gain. Risking ₹2.40 to make ₹1.00 is a ratio of 2.4 : 1 — against you.</p></dd>
+    </div>
+
+    <div class="term">
+      <dt><span class="word">Position size</span><span class="aka">quantity · lot size</span></dt>
+      <dd><p>How much money you put into one trade. Almost every beginner treats this as an afterthought. It is the single most powerful control you have.</p></dd>
+    </div>
+
+    <div class="term">
+      <dt><span class="word">Risk-based sizing</span><span class="aka">fixed fractional · 1% rule</span></dt>
+      <dd><p>Instead of always buying a fixed amount, you choose a fixed <em>loss</em> — say ₹200 — and work backwards to how many shares that allows. A wide stop means a small position; a tight stop means a large one.</p>
+      <p><strong>Fixed sizing asks "how much can I buy?" Risk-based sizing asks "how much can I lose?"</strong></p>
+      <span class="ours"><b>What it does to THERMAX</b>Risking 1% of ₹20,000 = ₹200 per trade, regardless of stop distance:<br>
+      <span class="n">stop 0.50% → position ₹40,000 → loss ₹200</span><br>
+      <span class="n">stop 1.00% → position ₹20,000 → loss ₹200</span><br>
+      <span class="n">stop 9.75% → position &nbsp;₹2,051 → loss ₹200</span><br>
+      The account-killing 9.75% stop now costs exactly what every other trade costs.</span></dd>
+    </div>
+
+    <div class="term">
+      <dt><span class="word">Drawdown</span><span class="aka">max DD</span></dt>
+      <dd><p>The worst peak-to-trough fall your account suffers along the way. Two strategies can end at the same place, with one of them having been terrifying to hold. Drawdown measures the terror.</p></dd>
+    </div>
+  </dl>
+</section>
+
+<!-- ══════════════════════════ 04 ══════════════════════════ -->
+<section id="truth">
+  <div class="sec-head"><span class="sec-num">04</span><h2>Telling truth from luck</h2></div>
+  <p class="sec-intro">This section contains the ideas that separate people who make money from people who have stories. None of them are about charts.</p>
+
+  <dl>
+    <div class="term">
+      <dt><span class="word">Hit Rate</span><span class="aka">win rate · accuracy · strike rate</span></dt>
+      <dd><p>The share of trades that reach target. The number everyone quotes and almost nobody qualifies.</p>
+      <p><strong>A hit rate without its target and stop attached is not information.</strong> It is like being told a car "does 40" — forty what?</p>
+      <span class="ours"><b>Your friend's 85% is real — and useless</b>Set the target to 0.5% and this strategy hits <b>77%</b> of decided trades. Set it to 1% and it hits <b>58%</b>. The 77% version <em>loses money twice as fast</em>, because the wins are half the size. High win rates are the easiest thing in trading to manufacture.</span></dd>
+    </div>
+
+    <div class="term">
+      <dt><span class="word">Breakeven Hit Rate</span><span class="aka">required win rate</span></dt>
+      <dd><p>The hit rate at which you make exactly nothing, derived from your stop distance, your target and your costs. <strong>Any claimed win rate is meaningless until compared against this number.</strong></p>
+      <span class="ours"><b>Why it is on every alert</b>Risking 2.43% to make 1% needs a <b>71%</b> hit rate just to stand still. So an "80% accurate" strategy with that shape is barely profitable — and a 65% one bleeds slowly while you win most of your trades.</span></dd>
+    </div>
+
+    <div class="term">
+      <dt><span class="word">Expectancy</span><span class="aka">edge · average return per trade</span></dt>
+      <dd><p>The average rupees a trade makes you, wins and losses blended. This — not win rate — is the number that determines whether you get richer.</p>
+      <p>You can win 6 trades out of 10 and go broke. You can win 3 out of 10 and get rich. Expectancy is why.</p></dd>
+    </div>
+
+    <div class="term">
+      <dt><span class="word">Sample size</span><span class="aka">n</span></dt>
+      <dd><p>How many observations a conclusion rests on. Small samples produce confident nonsense.</p>
+      <span class="ours"><b>The number nobody says out loud</b>To prove an edge of +0.079% per trade is real rather than luck takes about <b>328 trades — 1.3 years</b> of daily trading. Your friend showed you three charts.</span></dd>
+    </div>
+
+    <div class="term">
+      <dt><span class="word">Confidence interval</span><span class="aka">error bars · 95% CI</span></dt>
+      <dd><p>The honest range your true answer probably lies in. If that range contains zero, you have not shown anything at all.</p>
+      <span class="ours"><b>Our best-looking rule</b>"Take the narrowest Candle 1 each day" returned +0.179% per trade — but its interval ran from <b>−0.120% to +0.478%</b>. Zero sits comfortably inside. That rule might be good, might be worthless; 23 trades cannot tell.</span></dd>
+    </div>
+
+    <div class="term">
+      <dt><span class="word">Permutation test</span><span class="aka">randomisation check</span></dt>
+      <dd><p>A way to ask "could a monkey have done this?" You simulate thousands of random choices and see how many beat your clever rule.</p>
+      <span class="ours"><b>The humbling result</b>We simulated 20,000 people picking one signal a day <em>at random</em>. <b>10.8% of them matched or beat</b> our best rule. About one blindfolded coin-flipper in nine did as well. Would you buy their system?</span></dd>
+    </div>
+
+    <div class="term">
+      <dt><span class="word">Multiple comparisons</span><span class="aka">p-hacking · data mining</span></dt>
+      <dd><p>Test enough ideas against the same data and some will look brilliant purely by chance. Test seven theories about a cricket match and one will be right — that is not cricket knowledge.</p>
+      <span class="ours"><b>Our own confession</b>We tested <b>46 variants</b> against the same 88 signals. At roughly a one-in-nine chance of any single one looking good by luck, four or five false winners were <em>expected</em>. Exactly four appeared.<br><br><strong>The right first question about any backtest is never "what were the returns?" It is "how many things did you try?"</strong></span></dd>
+    </div>
+
+    <div class="term">
+      <dt><span class="word">Overfitting</span><span class="aka">curve-fitting</span></dt>
+      <dd><p>Tuning rules until they fit the past beautifully and the future not at all. The tell-tale sign is a rule with lots of oddly specific numbers in it.</p>
+      <p>The defence: choose rules because they make sense first, and only then check the number. Never the other way round.</p></dd>
+    </div>
+
+    <div class="term">
+      <dt><span class="word">Survivorship bias</span><span class="aka">highlight reel</span></dt>
+      <dd><p>Judging something by its successes because the failures were never shown to you. Nobody screenshots their losers.</p>
+      <span class="ours"><b>The three charts</b>You were shown DATAPATTNS, THERMAX and HDFCLIFE. Those same stocks also produced stop-outs in the same period that nobody photographed. It is like rating a restaurant from the pictures on its own wall.</span></dd>
+    </div>
+
+    <div class="term">
+      <dt><span class="word">Lookahead bias</span><span class="aka">future leak</span></dt>
+      <dd><p>Accidentally using information that would not have been available at the time. The most common way a backtest reports profits that vanish in live trading.</p>
+      <p>It hides in innocent places: entering at a candle's closing price, or deciding which alert you "would have taken" after seeing how they turned out.</p></dd>
+    </div>
+
+    <div class="term">
+      <dt><span class="word">Base Rate</span><span class="aka">prior · what usually happens</span></dt>
+      <dd><p>How things have historically turned out for cases like this one. It replaces opinion with evidence — and it earns its authority slowly.</p>
+      <span class="ours"><b>Why your alerts say "insufficient data"</b>The original design attached a confident 0–100 confidence score. We tested it: one factor was true by definition and handed every signal a free 20 points, and the factor with the clearest real signal was weighted lowest. We deleted it. The alert now says "insufficient data (n=0, need 20)" until it has genuinely earned the right to say otherwise.</span></dd>
+    </div>
+  </dl>
+</section>
+
+<!-- ══════════════════════════ 05 ══════════════════════════ -->
+<section id="system">
+  <div class="sec-head"><span class="sec-num">05</span><h2>Words we invented</h2></div>
+  <p class="sec-intro">These are not industry terms — they are specific to your system, and they exist because each one names something that would otherwise get muddled.</p>
+
+  <dl>
+    <div class="term">
+      <dt><span class="word">Journal</span><span class="aka">data/signals.csv</span></dt>
+      <dd><p>The permanent record of every signal the system ever produced and what happened to it. Stored as files committed to your GitHub repository, which means every entry carries a timestamp you cannot quietly edit later.</p></dd>
+    </div>
+
+    <div class="term">
+      <dt><span class="word">Pick</span><span class="aka">your TAKE or SKIP answer</span></dt>
+      <dd><p>Your decision on a signal, recorded <em>before</em> the outcome exists, stamped with Telegram's own clock. Answer late and it is logged as late.</p>
+      <p>This exists to answer a question almost no trader can answer about themselves: <strong>does my judgment beat picking at random?</strong> Decide after seeing the results and you are measuring your memory, not your skill.</p></dd>
+    </div>
+
+    <div class="term">
+      <dt><span class="word">Research log</span><span class="aka">docs/research-log.md</span></dt>
+      <dd><p>An append-only list of every idea ever tested against the Journal — including the failures. It exists so the multiple-comparisons count is always known.</p>
+      <p>Delete a failed test and every future claim silently inflates.</p></dd>
+    </div>
+
+    <div class="term">
+      <dt><span class="word">ADR</span><span class="aka">architecture decision record</span></dt>
+      <dd><p>A short note recording a decision and, more importantly, <em>why</em>. Your project has seven. They stop a future version of you from "fixing" something that was deliberate — such as widening the stock universe and quietly reintroducing 9.75% stops.</p></dd>
+    </div>
+
+    <div class="term">
+      <dt><span class="word">Backtest</span><span class="aka">historical simulation</span></dt>
+      <dd><p>Running the rules over past data to see what would have happened. Cheap, fast, and extremely easy to fool yourself with — which is what most of section 04 is about.</p></dd>
+    </div>
+
+    <div class="term">
+      <dt><span class="word">Paper trading</span><span class="aka">simulated trading</span></dt>
+      <dd><p>Recording decisions without money at stake. Your system is a paper lab: it has no broker connection and cannot place an order. The worst thing it can do to you is send a Telegram message.</p></dd>
+    </div>
+  </dl>
+</section>
+
+<!-- ══════════════════════════ 06 ══════════════════════════ -->
+<section id="verdict">
+  <div class="sec-head"><span class="sec-num">06</span><h2>What it all measured</h2></div>
+  <p class="sec-intro">Fifty stocks, 23 sessions, 1,150 stock-days, 88 signals — with real costs and realistic fills.</p>
+
+  <div class="table-scroll">
+    <table>
+      <thead><tr><th>Outcome</th><th>Count</th><th>Meaning</th></tr></thead>
+      <tbody>
+        <tr><td>Target reached</td><td class="num">17</td><td>a win, +1%</td></tr>
+        <tr><td>Stop hit</td><td class="num">10</td><td>a loss, about −1%</td></tr>
+        <tr><td>Fizzle</td><td class="num">61</td><td>neither — closed out at whatever price</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="table-scroll">
+    <table>
+      <thead><tr><th>Measure</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td>Hit Rate excluding Fizzles</td><td class="num">63%</td></tr>
+        <tr><td>Breakeven Hit Rate needed</td><td class="num">50%</td></tr>
+        <tr><td>Gross expectancy</td><td class="num">+0.112% per signal</td></tr>
+        <tr><td>Net, after real costs</td><td class="num">+0.006% per signal</td></tr>
+        <tr><td>95% confidence interval</td><td class="num">−0.127% to +0.138%</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout">
+    <h3>The honest verdict</h3>
+    <p>The pattern is <strong>real</strong>. It appears on schedule, about 13% of stock-days, exactly as described. There is even a genuine edge in it — around <strong>0.08% per trade</strong>.</p>
+    <p>That edge is smaller than the bid–ask spread you must cross to collect it. After costs the expected return is <strong>+0.006% per trade</strong>, with a confidence interval that comfortably contains zero. It is not a scam and it is not a goldmine. It is a coin flip that pays the broker.</p>
+    <p>The claimed 80–85% is achievable — at a 0.5% target — and that version loses money faster. And of 88 signals, <strong>not one ever moved 3%</strong> in its favour; the median best-case move was +0.51%. The +8% and +13% charts you were shown belong to midcaps, which this system deliberately does not trade.</p>
+  </div>
+
+  <div class="closing">
+    <p>Your friend is almost certainly not lying to you. He genuinely watched those stocks run. He has simply never counted his Fizzles, never priced his spread, and never asked himself how many variations he tried before finding the one he showed you.</p>
+    <p>That is not dishonesty. That is what trading looks like without a research log — which is the thing your system has and his does not.</p>
+    <p class="last">You found all of this out for ₹0. The version of you that funded the account first would have found it out at roughly −14% a month.</p>
+  </div>
+</section>
+
+</div>
+
+<script>
+(function () {
+  var root = document.documentElement;
+  var btn = document.getElementById('themeToggle');
+  var label = document.getElementById('themeLabel');
+
+  function systemDark() {
+    return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+  }
+  function current() {
+    var set = root.getAttribute('data-theme');
+    return set ? set : (systemDark() ? 'dark' : 'light');
+  }
+  function paint() { label.textContent = current() === 'dark' ? 'Light' : 'Dark'; }
+
+  try {
+    var saved = localStorage.getItem('fieldguide-theme');
+    if (saved === 'dark' || saved === 'light') root.setAttribute('data-theme', saved);
+  } catch (e) { /* private window, blocked storage - the page still renders */ }
+
+  paint();
+  btn.addEventListener('click', function () {
+    var next = current() === 'dark' ? 'light' : 'dark';
+    root.setAttribute('data-theme', next);
+    try { localStorage.setItem('fieldguide-theme', next); } catch (e) {}
+    paint();
+  });
+})();
+</script>
+</body>
+</html>

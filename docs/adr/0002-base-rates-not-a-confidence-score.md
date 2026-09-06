@@ -1,5 +1,5 @@
 ---
-status: accepted
+status: superseded by ADR-0008
 ---
 
 # Signals carry measured Base Rates, not an invented confidence score
