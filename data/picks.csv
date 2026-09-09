@@ -20,3 +20,4 @@ day,symbol,answer,reason_code,answered_at,deadline_candle,valid,raw
 2026-09-04,LT,NO_RESPONSE,WINDOW_MISSED,,11:00,WINDOW_MISSED,"alerted 19:09 IST, after the deadline"
 2026-09-04,SBIN,NO_RESPONSE,WINDOW_MISSED,,11:45,WINDOW_MISSED,"alerted 19:09 IST, after the deadline"
 2026-09-04,TATACONSUM,NO_RESPONSE,WINDOW_MISSED,,13:00,WINDOW_MISSED,"alerted 19:09 IST, after the deadline"
+2026-09-09,INFY,TAKE,,2026-09-09 12:40:18,12:45,yes,TAKE INFY
