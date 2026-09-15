@@ -46,6 +46,14 @@ EPOCH = datetime(1970, 1, 1)
 # session: at 10:47 IST (05:17 UTC) even the 09:15 candle is filtered out.
 IST_SHIFT = 5 * 3600 + 30 * 60
 
+# A candle is stamped ~5 minutes into its own future: the 10:45 bar carries 10:49:59.
+# So even with the shift above, the candle currently forming is filtered out until the
+# clock passes its stamp -- and the entry price we need is the OPEN of exactly that
+# forming candle. This buffer makes it visible immediately. It can only ever return MORE
+# data; callers that must not see an unfinished candle bound themselves with
+# candles.latest_complete() instead.
+LIVE_BUFFER = 6 * 60
+
 # resolution -> (chartType, timeInterval), mirrors the site's own mapping
 RESOLUTIONS: dict[str, tuple[str, int]] = {
     "1": ("I", 1),
@@ -154,7 +162,7 @@ class NseCharting:
         chart_type, time_interval = RESOLUTIONS[interval]
 
         # ...which is why "now" is shifted into the API's space before being sent.
-        now = int(datetime.now(timezone.utc).timestamp()) + IST_SHIFT
+        now = int(datetime.now(timezone.utc).timestamp()) + IST_SHIFT + LIVE_BUFFER
         from_date = 0
         if days:
             # the API filters in the same shifted epoch space that it returns

@@ -20,9 +20,15 @@ name: scan
 
 on:
   schedule:
-    - cron: "50 4 * * 1-5"     # 10:20 IST - the real start
-    - cron: "35 5 * * 1-5"     # 11:05 IST - backup if the first was discarded
-    - cron: "35 6 * * 1-5"     # 12:05 IST - last useful fallback, partial session
+    # Exactly one event per trading day. Three were tried as insurance against GitHub
+    # discarding the first, but a concurrency group admits only one pending run, so the
+    # backups spent the whole session queued behind the live watcher and then either
+    # cancelled each other or started after the close and exited. Three rows in the run
+    # list, one of them marked failed, for no benefit.
+    #
+    # If this single event is ever dropped, start the watcher by hand: Actions -> scan ->
+    # Run workflow. It picks up from whatever candle is current.
+    - cron: "50 4 * * 1-5"     # 10:20 IST
   workflow_dispatch:
     inputs:
       until:

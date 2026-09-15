@@ -100,7 +100,8 @@ def emit_signal(sym: str, day: str, session: dict, coil: rules.Coil,
     return row, missed
 
 
-def alert(row: dict, missed: bool, when: datetime, send: bool, session: dict) -> None:
+def alert(row: dict, missed: bool, when: datetime, send: bool, session: dict,
+          followup: bool = False) -> None:
     """One message per Signal, carrying whatever detail the data supports so far."""
     stop_pct = float(row["stop_pct"]) if row.get("stop_pct") else float(row["c1_width_pct"])
     n, mean, label = jr.base_rate(row["direction"], stop_pct)
@@ -126,6 +127,9 @@ def alert(row: dict, missed: bool, when: datetime, send: bool, session: dict) ->
         )
 
     text = tg.format_signal(row, label, sizes, session=session, when=when, score=sc)
+    if followup:
+        text = ("\U0001F4CD <b>ENTRY CONFIRMED</b> — the entry, target, score and size "
+                "were not yet available when this Signal first fired.\n\n") + text
     if missed:
         due = tg.deadline(row["day"], row["entry_candle"])
         text += ("\n\n⚠ Pick window closed at %s IST; this run happened at %s. "
@@ -340,10 +344,17 @@ def main(argv=None) -> int:
                 continue
             fresh, missed = emit_signal(sym, day, session, coil, latest, when)
             row = fresh
+        late_entry = False
         if row is not None and row["status"] == jr.SIGNALLED:
-            row = open_position(row, session) or row
-        if fresh is not None:
-            alert(row, missed, when, send, session)
+            opened = open_position(row, session)
+            # A Signal whose entry candle was not yet in the feed was alerted without an
+            # entry, target, score or size -- the numbers you actually decide on. Send
+            # them the moment they exist rather than leaving that first alert as the
+            # only one you ever get.
+            late_entry = opened is not None and fresh is None
+            row = opened or row
+        if fresh is not None or late_entry:
+            alert(row, missed, when, send, session, followup=late_entry)
         if row is not None and row["status"] == jr.OPEN:
             got = settle(row, session, latest)
             if got:

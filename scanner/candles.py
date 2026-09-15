@@ -73,9 +73,16 @@ def load(symbol: str) -> list[tuple[datetime, Bar]]:
 
 
 def merge(existing: list, fresh: list) -> list:
-    """Union by timestamp, preferring the bar already on disk (defect 1)."""
-    seen = {t: b for t, b in fresh}
-    seen.update({t: b for t, b in existing})
+    """
+    Union by timestamp, preferring the freshly fetched bar.
+
+    Fresh has to win. The feed now returns the candle currently forming, whose high, low
+    and close are provisional -- cache that and prefer it, and a half-finished 10:45 bar
+    would still be in place at 15:30. Defect 2, the closing aggregate bar, is caught by
+    the volume guard in build_sessions rather than by preferring stale data here.
+    """
+    seen = {t: b for t, b in existing}
+    seen.update({t: b for t, b in fresh})
     return sorted(seen.items(), key=lambda kv: kv[0])
 
 
