@@ -25,3 +25,4 @@ day,symbol,answer,reason_code,answered_at,deadline_candle,valid,raw
 2026-09-17,TITAN,NO_RESPONSE,WINDOW_MISSED,,11:45,WINDOW_MISSED,"alerted 11:46 IST, after the deadline"
 2026-09-18,MAXHEALTH,NO_RESPONSE,WINDOW_MISSED,,12:45,WINDOW_MISSED,"alerted 12:46 IST, after the deadline"
 2026-09-21,HINDALCO,NO_RESPONSE,WINDOW_MISSED,,12:00,WINDOW_MISSED,"alerted 12:01 IST, after the deadline"
+2026-09-24,WIPRO,TAKE,,2026-09-24 11:06:37,11:15,yes,TAKE WIPRO
