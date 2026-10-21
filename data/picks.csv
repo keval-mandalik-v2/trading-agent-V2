@@ -38,3 +38,5 @@ day,symbol,answer,reason_code,answered_at,deadline_candle,valid,raw
 2026-10-15,JSWSTEEL,NO_RESPONSE,WINDOW_MISSED,,12:00,WINDOW_MISSED,"alerted 14:57 IST, after the deadline"
 2026-10-15,SBILIFE,NO_RESPONSE,WINDOW_MISSED,,12:15,WINDOW_MISSED,"alerted 14:57 IST, after the deadline"
 2026-10-16,SBILIFE,NO_RESPONSE,WINDOW_MISSED,,11:00,WINDOW_MISSED,"alerted 14:49 IST, after the deadline"
+2026-10-21,BAJFINANCE,NO_RESPONSE,WINDOW_MISSED,,12:00,WINDOW_MISSED,"alerted 15:10 IST, after the deadline"
+2026-10-21,LT,NO_RESPONSE,WINDOW_MISSED,,12:00,WINDOW_MISSED,"alerted 15:10 IST, after the deadline"
